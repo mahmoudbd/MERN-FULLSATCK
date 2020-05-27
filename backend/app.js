@@ -5,6 +5,13 @@ const bodyPareser = require('body-parser');
 const placesRoutes = require('./routes/places-routes');
 const app = express();
 
+//new middleware to use body-paresr package it should before the request reaches the places routes
+//because the middleware will be parsed from top to bottom
+//so we have to first parse the body and then reach the routes
+
+//this will parse any incoming requests body and extract any json data
+//to regular java script data structurs like opjects and aarays and then call next automatically
+app.use(bodyPareser.json());
 //use router as middleware
 app.use('/api/places', placesRoutes);
 
