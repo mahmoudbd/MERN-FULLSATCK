@@ -1,8 +1,10 @@
 const express = require('express');
 
+const HttpError = require('./models/http-error');
 //ensures the request bodies of incoming requests
 const bodyPareser = require('body-parser');
 const placesRoutes = require('./routes/places-routes');
+const usersRoutes = require('./routes/users-routes');
 const app = express();
 
 //new middleware to use body-paresr package it should before the request reaches the places routes
@@ -14,7 +16,14 @@ const app = express();
 app.use(bodyPareser.json());
 //use router as middleware
 app.use('/api/places', placesRoutes);
-
+app.use('/api/users', usersRoutes);
+//this comes after our routes
+//this middleware only runs if we didnt send the response in one of our routes before
+//only reached if we have some requests wich didnt get a response
+app.use((req, res, next) => {
+	const error = new HttpError('Could not find this routes', 404);
+	throw error;
+});
 //if you provid a middleware function that takes four parameters express will recognize this
 //and make this as a special middelware functio as an error handling function
 //That means this fun will only be executed on requests that have an error
