@@ -1,0 +1,19 @@
+MongoDB briefings in database collections and documents logic. 
+This means we have a database which can contain one or multiple collections
+and the collections can contain one or multiple documents.
+
+and in our project each single document is a new place that we stored, That is a mongDB side ..
+
+from mongoose side we think in schema and model logic a schema is the blueprint of a documents
+that we want to store . in our case blueprint of a place for example we can make sure that 
+a place must contain a title.
+
+Based on the schema we create model and each instance of this model in our code will then result in a new document.
+
+//start with mongoDB create place.js in models folder
+
+
+
+
+
+

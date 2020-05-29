@@ -1,5 +1,6 @@
 const express = require('express');
-
+const mongoose = require('mongoose');
+const dotenv = require('dotenv');
 const HttpError = require('./models/http-error');
 //ensures the request bodies of incoming requests
 const bodyPareser = require('body-parser');
@@ -39,6 +40,12 @@ app.use((error, req, res, next) => {
 	res.status(error.code || 500);
 	res.json({ message: error.message || 'An unknown error occurred!' });
 });
-const port = 5000;
-
-app.listen(port, console.log(`serevr running on port ${port}`));
+dotenv.config();
+mongoose
+	.connect(process.env.DB_CONNECT, { useNewUrlParser: true }, () => console.log('conected to db '))
+	.then(() => {
+		app.listen(5000);
+	})
+	.catch((err) => {
+		console.log(err);
+	});
