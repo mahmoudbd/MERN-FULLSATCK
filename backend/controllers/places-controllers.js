@@ -1,6 +1,11 @@
+const mongoose = require('mongoose');
 const HttpError = require('../models/http-error');
 const { validationResult } = require('express-validator');
 const { v4: uuidv4 } = require('uuid');
+
+//import user model coz we want to interact with the user well we kind of have to establish that connection
+//so now we can use user schema
+const User = require('../models/user');
 
 const getCoordsForAddress = require('../util/location');
 //import monoose model , Capital P to be as constructor function
@@ -95,7 +100,7 @@ const createPlace = async (req, res, next) => {
 	const errors = validationResult(req);
 	if (!errors.isEmpty()) {
 		console.log(errors);
-		next(new HttpError('Invalid inputs passed, please check your data', 422));
+		next(new HttpError('Invalid inputs passed, please check your data', 422)); //422 invalid user  input
 	}
 	//get the parse body on a request body property
 	//we will use oject destructuring to get different properties out of requset body and store it in
@@ -115,17 +120,52 @@ const createPlace = async (req, res, next) => {
 		location: coordinates,
 		image:
 			'https://upload.wikimedia.org/wikipedia/commons/thumb/1/10/Empire_State_Building_%28aerial_view%29.jpg/400px-Empire_State_Building_%28aerial_view%29.jpg',
+		//we now store a real Mongo DB ID in this field
 		creator
 	});
-	//DUMMY_PLACES.push(createdPlace); //unsheft
 
-	//.save is a method available in mongoose and save will handle all mongoDB code we need to
-	//store a new document in our database in the colliction and
-	//additionally save will also create that unique places IDs and it also promis
+	let user;
 	try {
-		await createdPlace.save();
+		//we wnat to access degrade the property of the users and check whether the ID we have for our log in user is already stored in here
+		//so we wnat to check if the ID of the user is existing
+		user = await User.findById(creator);
 	} catch (err) {
 		const error = new HttpError('Creating place failed,please try again', 500);
+		return next(error);
+	}
+	//if the user is not existing  not in our database
+	if (!user) {
+		const error = new HttpError('Could not find user for provided id', 404);
+		return next(error);
+	}
+	console.log(user);
+	//if the user is existing first we create new document with our new place
+	//and second we can add the place added to the user
+	//DUMMY_PLACES.push(createdPlace); //unsheft
+	try {
+		//we need to be able to kind of execute different or multiple operation which are not directly realted to each other and if one of these operations fails
+		//so if either creating the place fails or if storing the ID of the place in our user documents .
+		//then we want to make sure to undo all operations
+
+		//to do that we need to use transactions and sessions
+		//transactions allows you to perform multiple operations in isolation of each other and to undo these and the transactions
+		//are basically built on sessions
+		const sess = await mongoose.startSession();
+		sess.startTransaction();
+		//tell mongoose what we want to do here
+		//we wnat to make sure that our created place is saved right in the databease with a uniqu ID
+		await createdPlace.save({ session: sess }); //add a place
+		//here we need to make sure that the place ID is also added to our user
+		//push here is not the standard push but here used by mongoose which kind of allows
+		//mongoose to behind the scen establish the conncetion between the tow
+		//models we are referring to here
+		user.places.push(createdPlace); //add a place id
+		//now we have to save our updated user
+		await user.save({ session: sess }); //save the user
+		//we wnat here to make sure that this session commits the trends action right here
+		await sess.commitTransaction();
+	} catch (err) {
+		const error = new HttpError('Creating place failed,please try again', 500); //500 anything goes wrong with the request
 		return next(error);
 	}
 	res.status(201).json({ place: createdPlace }); //200 is normal success code but 201 status code if you created something new
@@ -133,7 +173,7 @@ const createPlace = async (req, res, next) => {
 const updatePlace = async (req, res, next) => {
 	const errors = validationResult(req);
 	if (!errors.isEmpty()) {
-		throw new HttpError('Invalid inputs passed, please check your data', 422);
+		return next(new HttpError('Invalid inputs passed, please check your data', 422)); //422 invalid user  input
 	}
 	const { title, description } = req.body;
 	const placeId = req.params.pid;
@@ -142,7 +182,7 @@ const updatePlace = async (req, res, next) => {
 	try {
 		place = await Place.findById(placeId);
 	} catch (err) {
-		const error = new HttpError('Something went wrong could not update place.', 500);
+		const error = new HttpError('Something went wrong could not update place.', 500); //500 anything goes wrong with the request
 		return next(error);
 	}
 	//we used a copy of our object data ,a spread operator  here becaues if we use direct
@@ -170,15 +210,48 @@ const updatePlace = async (req, res, next) => {
 	res.status(200).json({ place: place.toObject({ getters: true }) });
 };
 
-const deletePlace = (req, res, next) => {
+const deletePlace = async (req, res, next) => {
 	const placeId = req.params.pid;
-
-	if (!DUMMY_PLACES.find((p) => p.id === placeId)) {
-		throw new HttpError('Clould not find a place for that id .', 404);
+	//find the place  the first step
+	let place;
+	try {
+		//first we have to find the place ID of a place  we are looking for to delete this place
+		//and in the same time we also want to search for our users collection and see which user has this place.
+		//and then we want to make sure that if we did a place that this ID is also deleted from this user document
+		//this means we need to access to user document and need overwrite or change an existing while infomation in this document
+		//and to do that we need populate method and it needs information about the document where we want
+		//to change something and move in this document we need to refer to aspecific property here is creator.
+		//coz creator contains the user ID mongoose
+		place = await Place.findById(placeId).populate('creator');
+	} catch (err) {
+		const error = new HttpError('Something went wrong, could not delete place.', 500);
+		return next(error);
 	}
-	//keep the place if IDs do not match , if IDs do match then
-	//it is the place i want to remove
-	DUMMY_PLACES = DUMMY_PLACES.filter((p) => p.id !== placeId);
+	//check whether a place ID actually exists
+	if (!place) {
+		const error = new HttpError('Could not find place for this id.', 404);
+		return next(error);
+	}
+	// delete it from our database
+	try {
+		//make sure that we can delete the place
+		const sess = await mongoose.startSession();
+		sess.startTransaction();
+		await place.remove({ session: sess });
+		place.creator.places.pull(place); //pull will automatically remove the ID
+		await place.creator.save({ session: sess });
+		await sess.commitTransaction();
+		//await place.remove();
+	} catch (err) {
+		const error = new HttpError('Something went wrong, could not delete place.', 500);
+		return next(error);
+	}
+	// if (!DUMMY_PLACES.find((p) => p.id === placeId)) {
+	// 	throw new HttpError('Clould not find a place for that id .', 404);
+	// }
+	// //keep the place if IDs do not match , if IDs do match then
+	// //it is the place i want to remove
+	// DUMMY_PLACES = DUMMY_PLACES.filter((p) => p.id !== placeId);
 	res.status(201).json({ message: 'Deleted place' });
 };
 //we use a post man that allow us to test or send a requestes becaues if you enter something in the
@@ -191,3 +264,7 @@ exports.getPlacesByUserId = getPlacesByUserId;
 exports.createPlace = createPlace;
 exports.updatePlace = updatePlace;
 exports.deletePlace = deletePlace;
+
+//.save is a method available in mongoose and save will handle all mongoDB code we need to
+//store a new document in our database in the colliction and
+//additionally save will also create that unique places IDs and it also promis

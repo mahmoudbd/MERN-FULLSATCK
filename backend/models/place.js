@@ -16,7 +16,12 @@ const placeSchema = new Schema({
 		lat: { type: Number, required: true },
 		lat: { type: Number, required: true }
 	},
-	creator: { type: String, required: true }
+	//make realtion or connection to user object and here we wnat this creator become a real creator in a mongoDB ID
+	// and to tell the mongoDB we used type: mongoose.Types.ObjectId
+
+	//ref property which allows to us to establish a connection between our current scema
+	//and another schema  user schema
+	creator: { type: mongoose.Types.ObjectId, required: true, ref: 'User' }
 });
 
 //special method available here in mongoose
