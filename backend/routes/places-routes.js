@@ -8,7 +8,7 @@ const placesControllers = require('../controllers/places-controllers');
 const router = express.Router();
 
 //routing gives us a special object that we can register middleware wich is filterd by HTTP method in path and then we can export our
-//configured router by the end of this this file
+//configured router by the end of this file
 //:pid dynamic segment  we use :
 router.get('/:pid', placesControllers.getPlaceId /* use MVC structure  Model view controler => places-controllers.js*/);
 

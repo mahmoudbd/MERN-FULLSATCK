@@ -11,9 +11,3 @@ a place must contain a title.
 Based on the schema we create model and each instance of this model in our code will then result in a new document.
 
 //start with mongoDB create place.js in models folder
-
-
-
-
-
-

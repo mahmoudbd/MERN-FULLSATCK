@@ -70,10 +70,13 @@ const getPlacesByUserId = async (req, res, next) => {
 	const userId = req.params.uid;
 	//we dont use a find that give us the first place matches we want to
 	//use filter because filter will return a new array full of elements that fulfill this criteria
-	let places;
+	//let places;
+
+	//use populate method
+	let userWithPlaces;
 	try {
 		//find method in mongoose  here will return all places so we have to add the user id here as argument and refer to placeID
-		places = await Place.find({ creator: userId });
+		userWithPlaces = await User.findById(userId).populate('places');
 	} catch (err) {
 		const error = new HttpError('Fetching places failed, please try again later ', 500); //500 anything goes wrong with the request
 		return next(error);
@@ -81,7 +84,7 @@ const getPlacesByUserId = async (req, res, next) => {
 	//DUMMY_PLACES.filter((p) => {
 	// 	return p.creator === userId;
 
-	if (!places || places.length === 0) {
+	if (!userWithPlaces || userWithPlaces.places.length === 0) {
 		//return res.status(404).json({ message: 'Could not find a place for the provided user id.' });
 		// const error = new Error('Could not find a place for the provided user id');
 		// error.code = 404;
@@ -91,7 +94,7 @@ const getPlacesByUserId = async (req, res, next) => {
 		return next(new HttpError('Could not find a places for the provided user id', 404));
 	}
 	//we used here map because find returns an array here and we can not use toObject in array
-	res.json({ places: places.map((place) => place.toObject({ getters: true })) });
+	res.json({ places: userWithPlaces.places.map((place) => place.toObject({ getters: true })) });
 };
 
 const createPlace = async (req, res, next) => {

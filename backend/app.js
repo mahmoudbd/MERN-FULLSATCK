@@ -13,7 +13,7 @@ const app = express();
 //so we have to first parse the body and then reach the routes
 
 //this will parse any incoming requests body and extract any json data
-//to regular java script data structurs like opjects and aarays and then call next automatically
+//to regular java script data structurs like opjects and arrays and then call next automatically
 app.use(bodyPareser.json());
 //use router as middleware
 app.use('/api/places', placesRoutes);
