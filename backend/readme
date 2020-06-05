@@ -11,3 +11,11 @@ a place must contain a title.
 Based on the schema we create model and each instance of this model in our code will then result in a new document.
 
 //start with mongoDB create place.js in models folder
+
+
+bcryptjs this is a nodejs library that helps us craete secure password or not create password but hash password , encrypt password
+
+
+JWT jsonwebtoken 
+this is a package which allow us to genetate such tokens with that private key
+ we have to make sure to use the same key for example 'supersecret_dont_share' in login and in sign up 

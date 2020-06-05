@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 const HttpError = require('../models/http-error');
 const { validationResult } = require('express-validator');
 const { v4: uuidv4 } = require('uuid');
-
+const fs = require('fs');
 //import user model coz we want to interact with the user well we kind of have to establish that connection
 //so now we can use user schema
 const User = require('../models/user');
@@ -121,8 +121,7 @@ const createPlace = async (req, res, next) => {
 		description,
 		address,
 		location: coordinates,
-		image:
-			'https://upload.wikimedia.org/wikipedia/commons/thumb/1/10/Empire_State_Building_%28aerial_view%29.jpg/400px-Empire_State_Building_%28aerial_view%29.jpg',
+		image: req.file.path,
 		//we now store a real Mongo DB ID in this field
 		creator
 	});
@@ -235,6 +234,9 @@ const deletePlace = async (req, res, next) => {
 		const error = new HttpError('Could not find place for this id.', 404);
 		return next(error);
 	}
+	// if you wont to clen up the images folder of the places
+	//continue cods with fs.unlink
+	const imagePath = place.image;
 	// delete it from our database
 	try {
 		//make sure that we can delete the place
@@ -249,13 +251,16 @@ const deletePlace = async (req, res, next) => {
 		const error = new HttpError('Something went wrong, could not delete place.', 500);
 		return next(error);
 	}
+	fs.unlink(imagePath, (err) => {
+		console.log(err);
+	});
+	res.status(201).json({ message: 'Deleted place' });
 	// if (!DUMMY_PLACES.find((p) => p.id === placeId)) {
 	// 	throw new HttpError('Clould not find a place for that id .', 404);
 	// }
 	// //keep the place if IDs do not match , if IDs do match then
 	// //it is the place i want to remove
 	// DUMMY_PLACES = DUMMY_PLACES.filter((p) => p.id !== placeId);
-	res.status(201).json({ message: 'Deleted place' });
 };
 //we use a post man that allow us to test or send a requestes becaues if you enter something in the
 //browser URL it by default always is a GET request
