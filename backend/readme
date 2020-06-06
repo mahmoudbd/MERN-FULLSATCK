@@ -19,3 +19,39 @@ bcryptjs this is a nodejs library that helps us craete secure password or not cr
 JWT jsonwebtoken 
 this is a package which allow us to genetate such tokens with that private key
  we have to make sure to use the same key for example 'supersecret_dont_share' in login and in sign up 
+
+
+whene ever i log in and i reload iam locked out again it would be nicer if we could stay authenticated
+ //if we reload we alrady are in the authenticated state again at least if 
+ token is still valid it expires after one hour
+
+ you could say a page reload is like your react app restarting or starting it for the first time
+ and that means any memory all located to your react app is basically lost
+
+ so the token stored in memory is lost when you reload the page
+
+ so to have it survive  page reload we have to store it somewhere else that in memory
+  and to stoe it in app js whene we do log in and we set the token dat offer i want store it 
+  in a more permanent storge 
+  and the breowser has got a couple of storge like loacl storge , cookies
+
+  1- session storge is abad storge because it is cleard whenever close the browser
+  2- local storge is great coz you can easily add and remove and manage data from JS and it survives browser restart and page reload 
+  3- cookies are also great but not as easy to use from inside JS 
+
+DB_CONNECT= mongodb+srv://@cluster0-dxj8e.mongodb.net/mern?retryWrites=true&w=majority
+
+
+code splitting in react
+
+npm run build 
+to make the code as small as possible because having a smaller code means that our users have to download less and hence the application
+start quicker so wehen we run npm build everything which not necessry will be stripped out and fuction and varible names will be shortened and you 
+will get as small of a code bundle as possible
+
+
+Heroku hosting provider for nodeJS
+
+firebase hosting react 
+
+AWS hosting 

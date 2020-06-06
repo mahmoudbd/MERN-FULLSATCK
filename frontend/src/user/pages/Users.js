@@ -23,7 +23,7 @@ const Users = () => {
 					//instead of fetch use sendRequest from our custom hook
 					//This needs URL nothing because it is configured as a default send a GET method
 					//now we do our responseData from our hook
-					const responseData = await sendRequest('http://localhost:5000/api/users');
+					const responseData = await sendRequest(process.env.REACT_APP_BACKEND_URL + '/users');
 					//const responseData = await response.json();
 					// if (!response.ok) {
 					// 	throw new Error(responseData.message);

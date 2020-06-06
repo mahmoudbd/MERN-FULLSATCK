@@ -3,7 +3,7 @@ const fs = require('fs');
 const path = require('path');
 const express = require('express');
 const mongoose = require('mongoose');
-const dotenv = require('dotenv');
+//const dotenv = require('dotenv');
 const HttpError = require('./models/http-error');
 //ensures the request bodies of incoming requests
 const bodyPareser = require('body-parser');
@@ -61,9 +61,14 @@ app.use((error, req, res, next) => {
 	res.status(error.code || 500);
 	res.json({ message: error.message || 'An unknown error occurred!' });
 });
-dotenv.config();
+//dotenv.config();
 mongoose
-	.connect(process.env.DB_CONNECT, { useNewUrlParser: true }, () => console.log('conected to db '))
+	// .connect(process.env.DB_CONNECT, { useNewUrlParser: true }, () => console.log('conected to db '))
+	.connect(
+		`mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASSWORD}@cluster0-dxj8e.mongodb.net/${process.env
+			.DB_NAME}?retryWrites=true&w=majority`,
+		() => console.log('conected to db ')
+	)
 	.then(() => {
 		app.listen(5000);
 	})

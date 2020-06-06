@@ -78,7 +78,7 @@ const Auth = () => {
 				//istead of fetch then post as a second argument the third argument should be the body
 				//and the forth argument our headers object this now send request
 				const responseData = await sendRequest(
-					'http://localhost:5000/api/users/login',
+					`${process.env.REACT_APP_BACKEND_URL}/users/login`,
 					'POST',
 					JSON.stringify({
 						email: formState.inputs.email.value,
@@ -102,7 +102,7 @@ const Auth = () => {
 				//setIsLoading(false);
 				//this will only kick in once if all the steps before are done
 				//now in the backend in users-controllers for login and signup and frontend can user object get ID
-				auth.login(responseData.user.id);
+				auth.login(responseData.userId, responseData.token);
 			} catch (err) {
 				// console.log(err);
 				// setIsLoading(false);
@@ -121,7 +121,11 @@ const Auth = () => {
 				// signup mode  send request only to signup backend
 				// we start first here coz we need to create at least one user with signup request and it should be post request
 				//then we need to set certain headers
-				const responseData = await sendRequest('http://localhost:5000/api/users/signup', 'POST', formData);
+				const responseData = await sendRequest(
+					`${process.env.REACT_APP_BACKEND_URL}/users/signup`,
+					'POST',
+					formData
+				);
 				// method: 'POST',
 				// headers: {
 				//with out that our back will not Know which kind of daya it receive and the body-parsing  where parse the incoming json data will not kik in correctly
@@ -147,7 +151,7 @@ const Auth = () => {
 				// }
 				// setIsLoading(false);
 				//this will only kick in once if all the steps before are doen
-				auth.login(responseData.user.id);
+				auth.login(responseData.userId, responseData.token);
 			} catch (err) {
 				// console.log(err);
 				// setIsLoading(false);

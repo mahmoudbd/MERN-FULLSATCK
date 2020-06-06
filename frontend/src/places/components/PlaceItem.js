@@ -34,7 +34,9 @@ const PlaceItem = (props) => {
 		try {
 			//send a requset to confirmed delete handeler
 			//this path from router.delete on places-routes  and the id from props  // in the please list we forward the id
-			await sendRequest(`http://localhost:5000/api/places/${props.id}`, 'DELETE');
+			await sendRequest(`${process.env.REACT_APP_BACKEND_URL}/places/${props.id}`, 'DELETE', null, {
+				Authorization: 'Bearer ' + auth.token
+			});
 			//from placesList // here the ID of the place which was delete
 			props.onDelete(props.id);
 		} catch (err) {}
@@ -77,7 +79,7 @@ const PlaceItem = (props) => {
 				<Card className="place-item__content">
 					{isLoading && <LoadingSpinner asOverlay />}
 					<div className="place-item__image">
-						<img src={`http://localhost:5000/${props.image}`} alt={props.title} />
+						<img src={`${process.env.REACT_APP_ASSET_URL}/${props.image}`} alt={props.title} />
 					</div>
 					<div className="place-item__info">
 						<h2>{props.title}</h2>

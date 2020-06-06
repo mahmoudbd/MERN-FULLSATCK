@@ -108,7 +108,7 @@ const createPlace = async (req, res, next) => {
 	//get the parse body on a request body property
 	//we will use oject destructuring to get different properties out of requset body and store it in
 	//const wich are then available in the function // destructuring just short  cut for const title = title.req.body
-	const { title, description, address, creator } = req.body;
+	const { title, description, address } = req.body;
 	let coordinates;
 	try {
 		coordinates = await getCoordsForAddress(address);
@@ -123,14 +123,14 @@ const createPlace = async (req, res, next) => {
 		location: coordinates,
 		image: req.file.path,
 		//we now store a real Mongo DB ID in this field
-		creator
+		creator: req.userData.userId
 	});
 
 	let user;
 	try {
 		//we wnat to access degrade the property of the users and check whether the ID we have for our log in user is already stored in here
 		//so we wnat to check if the ID of the user is existing
-		user = await User.findById(creator);
+		user = await User.findById(req.userData.userId);
 	} catch (err) {
 		const error = new HttpError('Creating place failed,please try again', 500);
 		return next(error);
@@ -187,6 +187,11 @@ const updatePlace = async (req, res, next) => {
 		const error = new HttpError('Something went wrong could not update place.', 500); //500 anything goes wrong with the request
 		return next(error);
 	}
+	//only the user can edit how is make it past
+	if (place.creator.toString() !== req.userData.userId) {
+		const error = new HttpError('You are not allowed to edit this place.', 401); //401 is authorization error
+		return next(error);
+	}
 	//we used a copy of our object data ,a spread operator  here becaues if we use direct
 	//updateplace.title= title that will immediately change the DUMMY_PLACES array above
 	//becaus objects are refernce value in java script , so if we would also store a file
@@ -233,6 +238,12 @@ const deletePlace = async (req, res, next) => {
 	if (!place) {
 		const error = new HttpError('Could not find place for this id.', 404);
 		return next(error);
+	}
+	//only authorized users can delete a place
+	//creator here is the full users object is why i access id like this here
+	//here we do not need toString coz this id gather here alrady gives us the id as a string
+	if (place.creator.id !== req.userData.userId) {
+		const error = new Error('You are not allowed to delete this pleasse', 401);
 	}
 	// if you wont to clen up the images folder of the places
 	//continue cods with fs.unlink

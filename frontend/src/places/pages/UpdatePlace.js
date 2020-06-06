@@ -39,7 +39,7 @@ const UpdatePlace = () => {
 			const fetchPlace = async () => {
 				try {
 					//places-routes in the backend and inject the place id from the URL
-					const responseData = await sendRequest(`http://localhost:5000/api/places/${placeId}`);
+					const responseData = await sendRequest(`${process.env.REACT_APP_BACKEND_URL}/places/${placeId}`);
 					//on the backend in the places-controller we see getPlacesById and then returns an object with places key
 					setLoadedPlace(responseData.place);
 					setFormData(
@@ -68,14 +68,15 @@ const UpdatePlace = () => {
 			//click Update place and stored it on the backend to path router.patch on places-routes
 			//send a request to backend
 			await sendRequest(
-				`http://localhost:5000/api/places/${placeId}`,
+				`${process.env.REACT_APP_BACKEND_URL}/places/${placeId}`,
 				'PATCH',
 				JSON.stringify({
 					title: formState.inputs.title.value,
 					description: formState.inputs.description.value
 				}),
 				{
-					'Content-Type': 'application/json'
+					'Content-Type': 'application/json',
+					Authorization: 'Bearer ' + auth.token
 				}
 			);
 			//from Route path='/:userId/places"

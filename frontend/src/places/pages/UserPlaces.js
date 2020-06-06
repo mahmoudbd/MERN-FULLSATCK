@@ -47,7 +47,9 @@ const UserPlaces = () => {
 			const fetchPalces = async () => {
 				try {
 					//from places-routes  then inject the user ID as dynmic
-					const responseData = await sendRequest(`http://localhost:5000/api/places/user/${userId}`);
+					const responseData = await sendRequest(
+						`${process.env.REACT_APP_BACKEND_URL}/places/user/${userId}`
+					);
 					//.places coz that key we are getting on the backend in places-controllers and will be an array
 					setLoadedPlaces(responseData.places);
 				} catch (err) {}

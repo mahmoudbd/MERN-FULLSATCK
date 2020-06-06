@@ -87,7 +87,7 @@ const signup = async (req, res, next) => {
 		//then take some argument // the first one is payload of the token sort of data you want to encode into the token it can string or {}
 		//the second is string which only the server knowns , never ever share it to any client
 		//tha last one is optional and here you can configure it a token with java object // example set toke expiration with expires with time
-		token = jwt.sign({ userId: createdUser.id, email: createdUser.email }, 'supersecret_dont_share', {
+		token = jwt.sign({ userId: createdUser.id, email: createdUser.email }, process.env.JWT_KEY, {
 			expiresIn: '1h'
 		});
 		//res.status(201).json({ place: createdUser }); //200 is normal success code but 201 status code if you created something new
@@ -120,7 +120,7 @@ const login = async (req, res, next) => {
 	//if existing user is not stored in the database or if the existing user password
 	// not equal to the password that was entered
 	if (!existingUser) {
-		const error = new HttpError('Invalid credentials, could not log you in', 401);
+		const error = new HttpError('Invalid credentials, could not log you in', 403);
 		return next(error);
 	}
 
@@ -135,12 +135,12 @@ const login = async (req, res, next) => {
 		return next(error);
 	}
 	if (!isValidPassword) {
-		const error = new HttpError('Invalid credentials, could not log you in', 401);
+		const error = new HttpError('Invalid credentials, could not log you in', 403); //403 this is forbidden in general
 		return next(error);
 	}
 	let token;
 	try {
-		token = jwt.sign({ userId: existingUser.id, email: existingUser.email }, 'supersecret_dont_share', {
+		token = jwt.sign({ userId: existingUser.id, email: existingUser.email }, process.env.JWT_KEY, {
 			expiresIn: '1h'
 		});
 	} catch (err) {
